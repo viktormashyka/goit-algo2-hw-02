@@ -26,9 +26,45 @@ def optimize_printing(print_jobs: List[Dict], constraints: Dict) -> Dict:
     """
     # Тут повинен бути ваш код
 
+    if not print_jobs:
+        return {
+            "print_order": None,
+            "total_time": None
+        }
+
+    print_order = []
+    total_time = 0
+
+    current_group = []
+    current_volume = 0
+    current_items = 0
+
+    # Сортування за пріоритетом (вищий пріоритет - нижче значення)
+    print_jobs_sorted = sorted(print_jobs, key=lambda x: x["priority"])
+    print("print_jobs_sorted: ", print_jobs_sorted) # Для перевірки
+
+    for job in print_jobs_sorted:
+        if current_volume + job["volume"] <= constraints["max_volume"] and current_items < constraints["max_items"]:
+            current_group.append(job)
+            current_volume += job["volume"]
+            current_items += 1
+        else:
+            # Завершуємо поточну групу і починаємо нову
+            if current_group:
+                print_order.extend([j["id"] for j in current_group])
+                total_time += max(j["print_time"] for j in current_group)
+            current_group = [job]
+            current_volume = job["volume"]
+            current_items = 1
+
+    # Додаємо останню групу
+    if current_group:
+        print_order.extend([j["id"] for j in current_group])
+        total_time += max(j["print_time"] for j in current_group)
+
     return {
-        "print_order": None,
-        "total_time": None
+        "print_order": print_order,
+        "total_time": total_time
     }
 
 # Тестування
